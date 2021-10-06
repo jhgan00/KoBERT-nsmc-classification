@@ -36,9 +36,9 @@ $ cat experiments.json
     {
         "mode": "train",
         "expr_name": "2021-10-05 21:02:20.792095",
-        "train": "./data/train.csv",
-        "valid": "./data/valid.csv",
-        "test": "./data/test.csv",
+        "train": "./data/train.txt",
+        "valid": "./data/valid.txt",
+        "test": "./data/test.txt",
         "max_len": 100,
         "train_batch_size": 64,
         "valid_batch_size": 1024,
