@@ -18,12 +18,13 @@ treform # preprocess.py 를 실행하려면 설치
 
 모델은 `models/expr_name` 디렉토리에 저장되고, 텐서보드 로그는 `logs/expr_name` 디렉토리에 저장됩니다. 
 학습을 마치면 `experiments.json` 파일에 사용한 인자와 검증 데이터셋 성능이 기록됩니다. 
+테스트셋에 대해 성능을 측정하려면 학습된 모델의 경로를 명시해주세요.
 
 ```bash
 $ python preprocess.py  # nsmc 데이터셋을 전처리하고 학습, 검증 데이터셋 분리 
 $ python main.py --mode train  # 기본 파라미터로 학습
 $ tensorboard --logdir ./logs
-$ python main.py --mode test 
+$ python main.py --mode test --load_model "models/2021-10-05 21:02:20.792095/best_model_states.bin"
 ``` 
 
 ## Results
