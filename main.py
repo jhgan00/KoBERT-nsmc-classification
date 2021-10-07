@@ -4,59 +4,76 @@ import datetime
 
 import torch.nn
 import numpy as np
+import treform as ptm
 from kobert_transformers import get_tokenizer
 from transformers import AdamW, get_linear_schedule_with_warmup
 
 from core.model import get_classifier
 from core.trainer import Trainer
 from core.data_loader import create_data_loader
+from core.predictor import Predictor
 
 
 def main(args):
+
+    print("=" * 10, "Configuration", "=" * 10)
+    for arg in vars(args): print(f"{arg}={getattr(args, arg)}")
+    print("=" * 34, end="\n\n")
 
     random.seed(args.seed)
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed(args.seed)
 
-    # 데이터
     tokenizer = get_tokenizer()
-    train_loader = create_data_loader(args.train, tokenizer, args.max_len, args.train_batch_size, shuffle=True)
-    valid_loader = create_data_loader(args.valid, tokenizer, args.max_len, args.valid_batch_size)
-    test_loader = create_data_loader(args.test, tokenizer, args.max_len, args.valid_batch_size)
 
-    # 모델
     model = get_classifier(args.bert_model_name)
+    if args.load_model is not None:
+        state_dict = torch.load(args.load_model)
+        model.load_state_dict(state_dict)
     model.to(args.device)
-    optimizer = AdamW(
-        model.parameters(),
-        lr=args.lr,
-        betas=(args.beta_1, args.beta_2),
-        weight_decay=args.weight_decay,
-        eps=1e-8
-    )
-    scheduler = get_linear_schedule_with_warmup(
-        optimizer,
-        num_warmup_steps=args.num_warmup_steps,
-        num_training_steps=len(train_loader) * args.num_epochs
-    )
-
-    # 모델 학습
-    trainer = Trainer(model, train_loader, valid_loader, optimizer, scheduler, args)
 
     if args.mode == "train":
-        print("=" * 10, "Configuration", "=" * 10)
-        for arg in vars(args): print(f"{arg}={getattr(args, arg)}")
-        print("=" * 34, end="\n\n")
+
+        train_loader = create_data_loader(args.train, tokenizer, args.max_len, args.train_batch_size, shuffle=True)
+        valid_loader = create_data_loader(args.valid, tokenizer, args.max_len, args.valid_batch_size)
+        optimizer = AdamW(
+            model.parameters(),
+            lr=args.lr,
+            betas=(args.beta_1, args.beta_2),
+            weight_decay=args.weight_decay,
+            eps=1e-8
+        )
+        scheduler = get_linear_schedule_with_warmup(
+            optimizer,
+            num_warmup_steps=args.num_warmup_steps,
+            num_training_steps=len(train_loader) * args.num_epochs
+        )
+
+        trainer = Trainer(model, train_loader, valid_loader, optimizer, scheduler, args)
         trainer.train()
+
     elif args.mode == "test":
-        trainer.test(args.load_model, test_loader)
+        predictor = Predictor(model, tokenizer, max_len=args.max_len, device=args.device)
+        test_loader = create_data_loader(args.test, tokenizer, args.max_len, args.valid_batch_size)
+        predictor.test(test_loader)
+
+    else:
+        pipeline = ptm.Pipeline(
+            ptm.splitter.NLTK(),
+            ptm.tokenizer.TwitterKorean(),
+            ptm.lemmatizer.SejongPOSLemmatizer(),
+            ptm.helper.SelectWordOnly(),
+            ptm.helper.StopwordFilter(file="./stopwords/stopwordsKor.txt")
+        )
+        predictor = Predictor(model, tokenizer, pipeline=pipeline, max_len=args.max_len, device=args.device)
+        predictor.interact()
 
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--mode", type=str, choices=["train", "test"], default="train")
+    parser.add_argument("--mode", type=str, choices=["train", "test", "interactive"], default="train")
     parser.add_argument("--expr_name", type=str, default=str(datetime.datetime.now()))
     parser.add_argument("--train", type=str, default="./data/train.txt")
     parser.add_argument("--valid", type=str, default="./data/valid.txt")

@@ -21,16 +21,15 @@ class Trainer:
         self.early_stopping_counter = 0
 
         self.args = args
+        self.expr_name = args.expr_name
         self.num_epochs = args.num_epochs
         self.eval_every = args.eval_every
         self.early_stopping_rounds = args.early_stopping_rounds
         self.device = args.device
 
-        self.model_dir = os.path.join("./models", args.expr_name)
-        self.log_dir = os.path.join("./logs", args.expr_name)
+        self.model_dir = os.path.join("./models", self.expr_name)
+        self.log_dir = os.path.join("./logs", self.expr_name)
         self.writer = SummaryWriter(self.log_dir)
-
-        if not os.path.exists(self.model_dir): os.makedirs(self.model_dir)
 
     def save(self, model, model_name='best_model_states.bin'):
 
@@ -108,6 +107,8 @@ class Trainer:
 
     def train(self):
 
+        if not os.path.exists(self.model_dir): os.makedirs(self.model_dir)
+
         for epoch in range(1, self.num_epochs+1):
             train_loss = self.train_epoch(epoch)
             if self.early_stopping_counter == self.early_stopping_rounds:
@@ -129,14 +130,13 @@ class Trainer:
             f.write(json_str)
 
     @torch.no_grad()
-    def evaluate(self, loader=None):
+    def evaluate(self):
 
-        loader = self.valid_loader if loader is None else loader
         predictions, targets = [], []
         total_val_loss = 0.
 
         self.model.eval()
-        for batch in loader:
+        for batch in self.valid_loader:
             input_ids = batch["input_ids"].to(self.device)
             attention_mask = batch["attention_mask"].to(self.device)
             token_type_ids = batch["token_type_ids"].to(self.device)
@@ -181,10 +181,3 @@ class Trainer:
                 f" - early stopping [{self.early_stopping_counter}/{self.early_stopping_rounds}]",
                 end="\n\n"
             )
-
-    def test(self, model_path, data_loader):
-
-        self.load(model_path)
-        test_loss, test_accuracy = self.evaluate(data_loader)
-        print(f"test accuracy: {test_accuracy:.4f}")
-        return test_loss, test_accuracy

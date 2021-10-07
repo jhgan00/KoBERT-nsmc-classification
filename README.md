@@ -11,27 +11,30 @@ torch==1.8.0
 kobert-transformers==0.5.1
 transformers==4.11.2
 tensorboard==2.6.0
-treform # preprocess.py 를 실행하려면 설치
+treform
 ```
 
-## Usage
+## Preprocessing
+
+`preprocess.py` 스크립트는 nsmc 데이터셋을 전처리하고 학습, 검증 데이터셋을 분리합니다.
+
+```bash
+$ python preprocess.py
+```
+
+## Main script
+
+`main` 스크립트는 `train`, `test`, `interactive` 모드로 실행할 수 있습니다.
+
+### Training
 
 모델은 `models/expr_name` 디렉토리에 저장되고, 텐서보드 로그는 `logs/expr_name` 디렉토리에 저장됩니다. 
-학습을 마치면 `experiments.json` 파일에 사용한 인자와 검증 데이터셋 성능이 기록됩니다. 
-테스트셋에 대해 성능을 측정하려면 학습된 모델의 경로를 명시해주세요.
+학습을 마치면 `experiments.json` 파일에 사용한 인자와 검증 데이터셋 성능이 기록됩니다.
 
-```bash
-$ python preprocess.py  # nsmc 데이터셋을 전처리하고 학습, 검증 데이터셋 분리 
-$ python main.py --mode train  # 기본 파라미터로 학습
-$ tensorboard --logdir ./logs
-$ python main.py --mode test --load_model "models/2021-10-05 21:02:20.792095/best_model_states.bin"
-``` 
+<p align="center"><img src="./assets/tensorboard.png" width="75%"></img></p>
 
-## Results
-
-기본 파라미터로 실행시 검증 데이터셋에 대해 약 0.8896, 평가 데이터셋 에 대해 약 0.885 의 성능을 보입니다. 
-
-```bash
+```bash 
+$ python main.py --mode train
 $ cat experiments.json
 [
     {
@@ -57,12 +60,34 @@ $ cat experiments.json
         "seed": 42,
         "valid_accuracy": 0.8889629654321811
     }
-]
-$ python main.py --mode test --load_model "models/2021-10-05 21:02:20.792095/best_model_states.bin"
-Loading model: models/2021-10-05 21:02:20.792095/best_model_states.bin
-test accuracy: 0.8850
+]  
+``` 
+
+### Test
+
+`test` 모드로 실행하면 테스트 데이터셋에 대해 성능을 평가합니다.
+기본 파라미터로 실행시 평가 데이터셋 에 대해 약 `0.885` 의 성능을 보입니다. 
+
+```bash
+$ python main.py \
+    --mode test \
+    --test "./data/test.txt" \
+    --load_model "models/2021-10-05 21:02:20.792095/best_model_states.bin"
 ```
 
+### Interactive
+
+`interactive` 모드로 실행하면 사용자가 입력하는 댓글에 대해 분류를 수행합니다.
+
+```bash
+$ python main.py \
+    --mode interactive \
+    --load_model "models/2021-10-05 21:02:20.792095/best_model_states.bin" \
+    --device cpu
+```
+
+
+![](assets/interactive.gif)
 
 ## References
 
