@@ -26,7 +26,7 @@ if __name__ == "__main__":
         ptm.tokenizer.TwitterKorean(),
         ptm.lemmatizer.SejongPOSLemmatizer(),
         ptm.helper.SelectWordOnly(),
-        ptm.helper.StopwordFilter(file=stopwords)
+        ptm.helper.StopwordFilter(file="./stopwords/stopwordsKor.txt")
     )
 
     # prepare dataset
@@ -41,6 +41,10 @@ if __name__ == "__main__":
     test_df_pp = preprocess(test_df, pipeline)
 
     # save
-    train_df_pp.to_csv("./data/train.txt", index=False, encoding="utf-8", sep="\t")
-    valid_df_pp.to_csv("./data/valid.txt", index=False, encoding="utf-8", sep="\t")
-    test_df_pp.to_csv("./data/test.txt", index=False, encoding="utf-8", sep="\t")
+    train_df.to_csv("./data/train.txt", index=False, encoding="utf-8", sep="\t")
+    valid_df.to_csv("./data/valid.txt", index=False, encoding="utf-8", sep="\t")
+    test_df.to_csv("./data/test.txt", index=False, encoding="utf-8", sep="\t")
+
+    train_df_pp.to_csv("./data/train_lemma_stopwords.txt", index=False, encoding="utf-8", sep="\t")
+    valid_df_pp.to_csv("./data/valid_lemma_stopwords.txt", index=False, encoding="utf-8", sep="\t")
+    test_df_pp.to_csv("./data/test_lemma_stopwords.txt", index=False, encoding="utf-8", sep="\t")

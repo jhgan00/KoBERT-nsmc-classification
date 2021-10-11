@@ -11,12 +11,13 @@ torch==1.8.0
 kobert-transformers==0.5.1
 transformers==4.11.2
 tensorboard==2.6.0
-treform
+treform     
 ```
 
 ## Preprocessing
 
-`preprocess.py` 스크립트는 nsmc 데이터셋을 전처리하고 학습, 검증 데이터셋을 분리합니다.
+`preprocess.py` 스크립트는 학습, 검증 데이터셋을 분리하고 nsmc 데이터셋을 전처리를 수행합니다. 
+기본 파라미터로 학습 시 전처리를 하지 않은 경우 성능이 가장 우수합니다. 
 
 ```bash
 $ python preprocess.py
@@ -34,12 +35,12 @@ $ python preprocess.py
 <p align="center"><img src="./assets/tensorboard.png" width="75%"></img></p>
 
 ```bash 
-$ python main.py --mode train
+$ python main.py --mode train --expr_name no_preprocessing
 $ cat experiments.json
 [
-    {
+     {
         "mode": "train",
-        "expr_name": "2021-10-05 21:02:20.792095",
+        "expr_name": "no_preprocessing",
         "train": "./data/train.txt",
         "valid": "./data/valid.txt",
         "test": "./data/test.txt",
@@ -58,7 +59,7 @@ $ cat experiments.json
         "load_model": null,
         "device": "cuda",
         "seed": 42,
-        "valid_accuracy": 0.8889629654321811
+        "valid_accuracy": 0.8974299143304777
     }
 ]  
 ``` 
@@ -66,13 +67,13 @@ $ cat experiments.json
 ### Test
 
 `test` 모드로 실행하면 테스트 데이터셋에 대해 성능을 평가합니다.
-기본 파라미터로 실행시 평가 데이터셋 에 대해 약 `0.885` 의 성능을 보입니다. 
+기본 파라미터로 실행시 평가 데이터셋 에 대해 약 `0.8945` 의 성능을 보입니다. 
 
 ```bash
 $ python main.py \
     --mode test \
     --test "./data/test.txt" \
-    --load_model "models/2021-10-05 21:02:20.792095/best_model_states.bin"
+    --load_model "models/no_preprocessing/best_model_states.bin"
 ```
 
 ### Interactive

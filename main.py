@@ -59,13 +59,22 @@ def main(args):
         predictor.test(test_loader)
 
     else:
-        pipeline = ptm.Pipeline(
-            ptm.splitter.NLTK(),
-            ptm.tokenizer.TwitterKorean(),
-            ptm.lemmatizer.SejongPOSLemmatizer(),
-            ptm.helper.SelectWordOnly(),
-            ptm.helper.StopwordFilter(file="./stopwords/stopwordsKor.txt")
-        )
+        pipeline = None
+        if args.preprocess == "lemma":
+            pipeline = ptm.Pipeline(
+                ptm.splitter.NLTK(),
+                ptm.tokenizer.TwitterKorean(),
+                ptm.lemmatizer.SejongPOSLemmatizer(),
+                ptm.helper.SelectWordOnly(),
+            )
+        elif args.preprocess == "lemma_stopwords":
+            pipeline = ptm.Pipeline(
+                ptm.splitter.NLTK(),
+                ptm.tokenizer.TwitterKorean(),
+                ptm.lemmatizer.SejongPOSLemmatizer(),
+                ptm.helper.SelectWordOnly(),
+                ptm.helper.StopwordFilter(file="./stopwords/stopwordsKor.txt")
+            )
         predictor = Predictor(model, tokenizer, pipeline=pipeline, max_len=args.max_len, device=args.device)
         predictor.interact()
 
@@ -91,7 +100,8 @@ if __name__ == "__main__":
     parser.add_argument("--early_stopping_rounds", type=int, default=5)
     parser.add_argument("--bert_model_name", type=str, default="monologg/kobert")
     parser.add_argument("--load_model", type=str, required=False)
-    parser.add_argument("--device", type=str, choices=["cuda", "cpu"], default="cuda")
+    parser.add_argument("--preprocess", type=str, choices=["no_preprocessing", "lemma", "lemma_stopwords"], default="no_preprocessing")
+    parser.add_argument("--device", type=str, default="cuda")
     parser.add_argument("--seed", type=int, default=42)
 
     args = parser.parse_args()
